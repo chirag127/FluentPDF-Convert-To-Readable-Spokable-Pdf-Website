@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpeakFlow - Ultimate Audiobook Engine</title>
+    <title>SpeakFlow - Ultimate PDF Engine</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -57,7 +57,7 @@
                     </div>
                     <div>
                         <span class="font-bold text-lg tracking-tight block leading-none">SpeakFlow</span>
-                        <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wide">Audiobook Engine</span>
+                        <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wide">Overdrive Engine</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -82,7 +82,7 @@
                         <i class="fa-solid fa-file-audio text-2xl"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-2">Upload PDF Book</h3>
-                    <p class="text-sm text-slate-500">Visual parsing • Unlimited Concurrency • Auto-Kerning Repair</p>
+                    <p class="text-sm text-slate-500">Visual parsing • Unlimited Concurrency • Precise Typesetting</p>
                 </div>
             </div>
 
@@ -138,7 +138,7 @@
 
             <div class="glass-panel rounded-2xl overflow-hidden flex flex-col max-h-[400px] shadow-sm">
                 <div class="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex justify-between items-center">
-                    <span class="text-xs font-bold uppercase text-slate-500"><i class="fa-solid fa-database mr-2"></i> Your Library</span>
+                    <span class="text-xs font-bold uppercase text-slate-500"><i class="fa-solid fa-database mr-2"></i> Cached Books</span>
                     <button onclick="app.library.refresh()" class="text-slate-400 hover:text-primary"><i class="fa-solid fa-sync"></i></button>
                 </div>
                 <div id="libraryList" class="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50 dark:bg-slate-900/50">
@@ -263,17 +263,16 @@
             defaults: {
                 concurrency: 100,
                 retry: 2000,
-                sys: "You are an expert Audiobook Script Writer and Accessibility Specialist. Your task is to convert technical or non-fiction book PDFs into a script optimized for Text-to-Speech (TTS). You must act as a narrator, bridging gaps caused by visual elements.",
-                rules: "1. **OUTPUT FORMAT**: Pure Markdown only. No 'Here is the conversion' preamble.\n2. **TEXT ARTIFACT REPAIR**: Aggressively detect and fix OCR errors where words are broken by spaces (e.g., convert 'S W C' to 'SWC', 'C h a p t e r' to 'Chapter', 'F i g u r e' to 'Figure'). Use context to determine if it is an acronym or a broken word.\n3. **VISUAL CONTEXT**: If the text references a Figure, Chart, or Image (e.g., 'As seen in Figure 1...'), analyze the surrounding text to infer what the image shows and describe it verbally (e.g., 'Figure 1 shows the SWC League Home Page layout...'). Do not just say 'Image 1'.\n4. **CODE BLOCKS**: Describe the logic of the code in plain English. (e.g., 'The code defines a function that iterates through the list...'). Do not read syntax symbols like curly braces unless necessary for context.\n5. **TABLES**: Convert tables into narrative sentences describing the data relationships (e.g., 'The table lists three tools: Pytest for testing, SQLAlchemy for database mapping...').\n6. **BOOK STRUCTURE**: Keep Chapter titles. Remove page numbers, running headers, and footers that interrupt the flow."
+                sys: "You are an expert Audiobook Script Writer. Your task is to convert technical or non-fiction book PDFs into a script optimized for Text-to-Speech (TTS).",
+                rules: "1. **OUTPUT**: Pure Markdown.\n2. **FIX ARTIFACTS**: DETECT AND FIX spacing errors (e.g., convert 'S W C' to 'SWC', 'P a g e' to 'Page').\n3. **VISUALS**: Describe images/charts referenced in text verbally (e.g., 'Figure 1 shows...').\n4. **TABLES**: Summarize rows/columns narratively.\n5. **CLEAN**: REMOVE 'Spoken script' headers, page numbers, and footers."
             },
 
-            // HARDCODED DEFAULT ORDER
             modelData: [
                 { id: "gemini-3-pro-preview", name: "Gemini 3 Pro Preview", provider: "gemini" },
                 { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", provider: "gemini" },
                 { id: "zai-glm-4.6", name: "Cerebras: Zai GLM 4.6", provider: "cerebras" },
                 { id: "qwen-3-235b-a22b-instruct-2507", name: "Cerebras: Qwen 3 235B", provider: "cerebras" },
-                { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "gemini" }, // Corrected Name from prompt list
+                { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "gemini" },
                 { id: "gpt-oss-120b", name: "Cerebras: GPT-OSS-120B", provider: "cerebras" },
                 { id: "openai/gpt-oss-120b", name: "Groq: GPT-OSS-120B", provider: "groq" },
                 { id: "llama-3.3-70b", name: "Cerebras: Llama 3.3 70B", provider: "cerebras" },
@@ -311,7 +310,7 @@
             },
 
             db: {
-                init: async () => idb.openDB('speakflow_v5', 1, { upgrade(db) { if (!db.objectStoreNames.contains('records')) db.createObjectStore('records', { keyPath: 'id' }); } }),
+                init: async () => idb.openDB('speakflow_v6', 1, { upgrade(db) { if (!db.objectStoreNames.contains('records')) db.createObjectStore('records', { keyPath: 'id' }); } }),
                 save: async (file, blob) => {
                     const db = await app.db.init();
                     await db.put('records', { id: `${file.name}_${file.size}`, fileName: file.name, date: new Date(), outputBlob: blob });
@@ -340,7 +339,7 @@
                     try {
                         const records = await app.db.getAll();
                         if (records.length === 0) {
-                            listEl.innerHTML = '<div class="text-center text-xs text-slate-400 italic py-4">No books cached yet.</div>';
+                            listEl.innerHTML = '<div class="text-center text-xs text-slate-400 italic py-4">No cached books found.</div>';
                             return;
                         }
                         listEl.innerHTML = '';
@@ -580,7 +579,7 @@
                     return chunks;
                 },
                 finish: async () => {
-                    const doc = new window.jspdf.jsPDF();
+                    const doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
                     app.state.results.forEach(res => { if(res) app.core.renderMarkdownToPdf(doc, res); });
                     const pdfBlob = doc.output('blob');
                     app.state.finalPDFBlob = pdfBlob;
@@ -590,29 +589,37 @@
                     document.getElementById('resultPanel').classList.remove('hidden');
                 },
                 renderMarkdownToPdf: (doc, markdownText) => {
-                    // === ULTIMATE PDF RENDERER WITH OVERLAP PROTECTION ===
-                    const tokens = marked.lexer(markdownText);
-                    const pageWidth = doc.internal.pageSize.getWidth();
-                    const pageHeight = doc.internal.pageSize.getHeight();
+                    // === ULTIMATE PDF RENDERER WITH SCALED SPACING ===
+                    // 1. Strip bad artifacts visible in screenshots
+                    let cleanMd = markdownText
+                        .replace(/Spoken script/gi, '')
+                        .replace(/^Page\s*\/?\s*\d+.*$/gm, '') // Strip "Page / 16" etc
+                        .replace(/\n\s*\n\s*\n/g, '\n\n'); // Remove excess vertical gaps
+
+                    const tokens = marked.lexer(cleanMd);
+                    const pageWidth = doc.internal.pageSize.getWidth(); // 210mm
+                    const pageHeight = doc.internal.pageSize.getHeight(); // 297mm
                     const margin = 20;
                     const maxWidth = pageWidth - (margin * 2);
                     let cursorY = margin;
+
+                    const ptToMm = (pt) => pt * 0.3528; // Exact conversion
 
                     const addText = (text, fontSize, fontStyle, spacingBefore = 0, spacingAfter = 0) => {
                         doc.setFontSize(fontSize);
                         doc.setFont("times", fontStyle);
 
-                        // CRITICAL: Correct Millimeter Line Height Calculation (1pt = 0.3527mm)
-                        // Using 1.4x spacing for readability
-                        const lineHeight = (fontSize * 0.3527) * 1.4;
+                        // Calculate Line Height in MM with buffer
+                        const lineHeight = ptToMm(fontSize) * 1.4;
 
                         const cleanText = text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
                         const lines = doc.splitTextToSize(cleanText, maxWidth);
 
-                        // Pre-calculation: Do we have space for the WHOLE block?
-                        // If not, do we have space for at least one line?
+                        // Total block height
+                        const blockHeight = (lines.length * lineHeight) + spacingBefore + spacingAfter;
 
-                        if (cursorY + spacingBefore + lineHeight > pageHeight - margin) {
+                        // Page Break Logic
+                        if (cursorY + blockHeight > pageHeight - margin) {
                             doc.addPage();
                             cursorY = margin;
                         } else {
@@ -620,12 +627,12 @@
                         }
 
                         lines.forEach(line => {
-                            // Check EVERY line before writing
+                            // Safety check per line (for very long blocks)
                             if (cursorY + lineHeight > pageHeight - margin) {
                                 doc.addPage();
                                 cursorY = margin;
                             }
-                            doc.text(line, margin, cursorY);
+                            doc.text(line, margin, cursorY + (lineHeight * 0.8)); // 0.8 offsets baseline
                             cursorY += lineHeight;
                         });
 
@@ -634,6 +641,7 @@
 
                     tokens.forEach(token => {
                         if (token.type === 'heading') {
+                            // H1/H2
                             addText(token.text.replace(/[#]/g,''), 16, 'bold', 6, 4);
                         }
                         else if (token.type === 'paragraph') {
