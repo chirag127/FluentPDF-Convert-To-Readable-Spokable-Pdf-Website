@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpeakFlow - Ultimate PDF Engine</title>
+    <title>SpeakFlow - Bulletproof PDF Engine</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -57,7 +57,7 @@
                     </div>
                     <div>
                         <span class="font-bold text-lg tracking-tight block leading-none">SpeakFlow</span>
-                        <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wide">Overdrive Engine</span>
+                        <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wide">Audiobook Engine</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -82,7 +82,7 @@
                         <i class="fa-solid fa-file-audio text-2xl"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-2">Upload PDF Book</h3>
-                    <p class="text-sm text-slate-500">Visual parsing • Unlimited Concurrency • Precise Typesetting</p>
+                    <p class="text-sm text-slate-500">Visual parsing • Unlimited Concurrency • Auto-Kerning Repair</p>
                 </div>
             </div>
 
@@ -263,10 +263,11 @@
             defaults: {
                 concurrency: 100,
                 retry: 2000,
-                sys: "You are an expert Audiobook Script Writer. Your task is to convert technical or non-fiction book PDFs into a script optimized for Text-to-Speech (TTS).",
-                rules: "1. **OUTPUT**: Pure Markdown.\n2. **FIX ARTIFACTS**: DETECT AND FIX spacing errors (e.g., convert 'S W C' to 'SWC', 'P a g e' to 'Page').\n3. **VISUALS**: Describe images/charts referenced in text verbally (e.g., 'Figure 1 shows...').\n4. **TABLES**: Summarize rows/columns narratively.\n5. **CLEAN**: REMOVE 'Spoken script' headers, page numbers, and footers."
+                sys: "You are an expert Audiobook Script Writer and Accessibility Specialist. Your task is to convert technical or non-fiction book PDFs into a script optimized for Text-to-Speech (TTS). You must act as a narrator, bridging gaps caused by visual elements.",
+                rules: "1. **OUTPUT FORMAT**: Pure Markdown only. No 'Here is the conversion' preamble.\n2. **TEXT ARTIFACT REPAIR**: Aggressively detect and fix OCR errors where words are broken by spaces (e.g., convert 'S W C' to 'SWC', 'C h a p t e r' to 'Chapter', 'F i g u r e' to 'Figure'). Use context to determine if it is an acronym or a broken word.\n3. **VISUAL CONTEXT**: If the text references a Figure, Chart, or Image (e.g., 'As seen in Figure 1...'), analyze the surrounding text to infer what the image shows and describe it verbally (e.g., 'Figure 1 shows the SWC League Home Page layout...'). Do not just say 'Image 1'.\n4. **CODE BLOCKS**: Describe the logic of the code in plain English. (e.g., 'The code defines a function that iterates through the list...'). Do not read syntax symbols like curly braces unless necessary for context.\n5. **TABLES**: Convert tables into narrative sentences describing the data relationships (e.g., 'The table lists three tools: Pytest for testing, SQLAlchemy for database mapping...').\n6. **BOOK STRUCTURE**: Keep Chapter titles. Remove page numbers, running headers, and footers that interrupt the flow."
             },
 
+            // HARDCODED DEFAULT ORDER
             modelData: [
                 { id: "gemini-3-pro-preview", name: "Gemini 3 Pro Preview", provider: "gemini" },
                 { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", provider: "gemini" },
@@ -589,50 +590,46 @@
                     document.getElementById('resultPanel').classList.remove('hidden');
                 },
                 renderMarkdownToPdf: (doc, markdownText) => {
-                    // === ULTIMATE PDF RENDERER WITH SCALED SPACING ===
-                    // 1. Strip bad artifacts visible in screenshots
-                    let cleanMd = markdownText
-                        .replace(/Spoken script/gi, '')
-                        .replace(/^Page\s*\/?\s*\d+.*$/gm, '') // Strip "Page / 16" etc
-                        .replace(/\n\s*\n\s*\n/g, '\n\n'); // Remove excess vertical gaps
+                    // === SAFE-WRITE PDF RENDERER ===
+                    // Prevents overlap by strictly checking page bounds before writing any line.
 
-                    const tokens = marked.lexer(cleanMd);
+                    const tokens = marked.lexer(markdownText);
                     const pageWidth = doc.internal.pageSize.getWidth(); // 210mm
                     const pageHeight = doc.internal.pageSize.getHeight(); // 297mm
                     const margin = 20;
                     const maxWidth = pageWidth - (margin * 2);
                     let cursorY = margin;
 
-                    const ptToMm = (pt) => pt * 0.3528; // Exact conversion
+                    // Convert Points to MM (1pt = 0.3527mm)
+                    const ptToMm = (pt) => pt * 0.3527;
 
-                    const addText = (text, fontSize, fontStyle, spacingBefore = 0, spacingAfter = 0) => {
+                    const writeBlock = (text, fontSize, fontStyle, spacingBefore = 0, spacingAfter = 0) => {
+                        // 1. Set Font state BEFORE calculation to get accurate wrapping
                         doc.setFontSize(fontSize);
                         doc.setFont("times", fontStyle);
 
-                        // Calculate Line Height in MM with buffer
-                        const lineHeight = ptToMm(fontSize) * 1.4;
+                        // 2. Calculate precise line height in MM (1.5x for safety)
+                        const lineHeight = ptToMm(fontSize) * 1.5;
 
+                        // 3. Clean & Wrap Text
                         const cleanText = text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '');
                         const lines = doc.splitTextToSize(cleanText, maxWidth);
 
-                        // Total block height
-                        const blockHeight = (lines.length * lineHeight) + spacingBefore + spacingAfter;
-
-                        // Page Break Logic
-                        if (cursorY + blockHeight > pageHeight - margin) {
+                        // 4. Pre-check initial spacing
+                        if (cursorY + spacingBefore > pageHeight - margin) {
                             doc.addPage();
                             cursorY = margin;
                         } else {
                             cursorY += spacingBefore;
                         }
 
+                        // 5. Write line-by-line with individual checks
                         lines.forEach(line => {
-                            // Safety check per line (for very long blocks)
                             if (cursorY + lineHeight > pageHeight - margin) {
                                 doc.addPage();
                                 cursorY = margin;
                             }
-                            doc.text(line, margin, cursorY + (lineHeight * 0.8)); // 0.8 offsets baseline
+                            doc.text(line, margin, cursorY + (lineHeight * 0.75)); // Text draws from baseline
                             cursorY += lineHeight;
                         });
 
@@ -641,17 +638,23 @@
 
                     tokens.forEach(token => {
                         if (token.type === 'heading') {
-                            // H1/H2
-                            addText(token.text.replace(/[#]/g,''), 16, 'bold', 6, 4);
+                            // Heading (Big, Bold)
+                            writeBlock(token.text.replace(/[#]/g,''), 16, 'bold', 6, 4);
                         }
                         else if (token.type === 'paragraph') {
-                            addText(token.text, 12, 'normal', 0, 4);
+                            // Standard Text
+                            writeBlock(token.text, 12, 'normal', 0, 4);
                         }
                         else if (token.type === 'list') {
-                            token.items.forEach(item => addText("• " + item.text, 12, 'normal', 0, 2));
+                            // Lists
+                            token.items.forEach(item => {
+                                writeBlock("• " + item.text, 12, 'normal', 1, 1);
+                            });
+                            cursorY += 2;
                         }
                         else if (token.type === 'code') {
-                            addText(token.text, 11, 'italic', 2, 4);
+                            // Code blocks (Italic description)
+                            writeBlock(token.text, 11, 'italic', 2, 4);
                         }
                     });
                 },
