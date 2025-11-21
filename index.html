@@ -1551,7 +1551,7 @@
                         ) => {
                             // 1. Set Font state BEFORE calculation to get accurate wrapping
                             doc.setFontSize(fontSize);
-                            doc.setFont("times", fontStyle);
+                            doc.setFont("helvetica", fontStyle); // Changed to Helvetica for better compatibility
 
                             // 2. Calculate precise line height in MM (1.5x for safety)
                             const lineHeight = ptToMm(fontSize) * 1.5;
@@ -1561,8 +1561,15 @@
                                 .replace(/\*\*/g, "")
                                 .replace(/\*/g, "")
                                 .replace(/`/g, "");
+
+                            // Ensure no zero-width spaces or weird chars interfere
+                            const sanitizedText = cleanText.replace(
+                                /[\u200B-\u200D\uFEFF]/g,
+                                ""
+                            );
+
                             const lines = doc.splitTextToSize(
-                                cleanText,
+                                sanitizedText,
                                 maxWidth
                             );
 
@@ -1586,7 +1593,8 @@
                                 doc.text(
                                     line,
                                     margin,
-                                    cursorY + lineHeight * 0.75
+                                    cursorY + lineHeight * 0.75,
+                                    { charSpace: 0 }
                                 ); // Text draws from baseline
                                 cursorY += lineHeight;
                             });
