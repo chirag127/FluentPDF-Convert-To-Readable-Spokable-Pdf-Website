@@ -643,8 +643,8 @@
                 defaults: {
                     concurrency: 5,
                     retry: 3000,
-                    sys: "You are an expert Audiobook Script Writer. Your task is to rewrite the provided text into a clean, engaging script optimized for Text-to-Speech (TTS). You must fix broken words, describe visuals, and remove page numbers.",
-                    rules: "1. **OUTPUT FORMAT**: Pure Markdown only. DO NOT include any conversational filler like 'Here is the converted text'. Start directly with the content.\n2. **TEXT REPAIR**: Fix OCR errors (e.g., 'S W C' -> 'SWC'). Join hyphenated words at line breaks.\n3. **VISUALS**: Describe images/charts referenced in the text (e.g., 'Figure 1 shows...').\n4. **STRUCTURE**: Keep chapter titles. Remove headers/footers/page numbers.\n5. **NO HALLUCINATIONS**: Do not invent content. Only convert what is provided.",
+                    sys: "You are an expert Audiobook Script Writer. Your goal is to convert technical documents (PDFs) into engaging, listenable audio scripts. You must rewrite raw code, tables, and diagrams into natural, descriptive English suitable for Text-to-Speech. Never read raw code or data structures verbatim.",
+                    rules: "1. **NARRATIVE FLOW**: Rewrite content as a continuous, engaging narrative. Avoid bullet points if possible; use full sentences.\n2. **CODE & DATA**: Do NOT read code (SQL, Python, etc.) or tables row-by-row. Instead, describe what they do (e.g., 'This SQL script creates three tables for a fantasy sports database: performance, league, and team...').\n3. **VISUALS**: Describe charts and diagrams naturally (e.g., 'The chart shows a steady increase in revenue...').\n4. **CLEANUP**: Fix broken OCR text, join hyphenated words, and remove page numbers/headers/footers.\n5. **NO FILLER**: Output ONLY the script. No 'Here is the text' or markdown code blocks.",
                 },
 
                 // HARDCODED DEFAULT ORDER
