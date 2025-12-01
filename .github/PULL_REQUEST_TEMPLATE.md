@@ -1,57 +1,66 @@
-# Pull Request Template
+--- 
+name: Feature / Fix / Refactor Request
+about: Propose a high-quality change to the FluentPDF Audio Narrative Generator Web App.
+title: 'feat(scope): Concise description of the change'
+labels: ['needs review', 'status: pending']
+assignees: ['chirag127']
+---
 
-## 1. APEX TECHNICAL AUTHORITY: PR CHECKLIST
+## 🚀 PULL REQUEST GATE CHECKLIST
 
-This pull request is being submitted for review. Please ensure all checks are complete before merging.
+**Failure to complete this checklist may result in the immediate closure of the PR.**
 
-### 🚀 CODE QUALITY & ARCHITECTURE
+- [ ] **Code Quality:** All new and modified code adheres to the [Biome](https://github.com/chirag127/FluentPDF-Audio-Narrative-Generation-Web-App) formatting and linting standards (`pnpm lint:fix` ran successfully).
+- [ ] **Testing:** Appropriate unit tests (Vitest) have been added or updated to cover all new logic, achieving **100% statement coverage** for the new code block.
+- [ ] **E2E Verification:** Playwright E2E tests have been executed locally and passed, verifying critical user paths remain functional.
+- [ ] **Feature-Sliced Design (FSD) Compliance:** All changes adhere strictly to the FSD structure (layers, slices, segments). No forbidden cross-layer imports exist.
+- [ ] **Documentation:** README.md or relevant documentation (if API/Interface changes) has been updated.
+- [ ] **Performance Review:** Changes do not introduce significant runtime performance regressions (especially in PDF parsing or LLM calls).
 
-- [ ] **Code Adheres to SOLID Principles:** Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion are all respected.
-- [ ] **Modularity Maintained:** Code organized using Feature-First Structure (e.g., `features/auth`).
-- [ ] **Command-Query Separation (CQS):** Methods are strictly either Commands (actions) or Queries (data retrieval), never both.
-- [ ] **DRY & KISS Applied:** Repetitive logic is abstracted; complexity is minimized.
-- [ ] **Self-Documenting Code:** Comments used ONLY for the "Why", not the "What".
-- [ ] **Guard Clauses Used:** Deep nesting avoided; early returns are preferred.
-- [ ] **12-Factor App Compliance:** Configuration externalized, services treated as attached resources.
+---
 
-### 🧪 TESTING & RELIABILITY
+## 🌟 PR TYPE & SUMMARY
 
-- [ ] **1:1 Test Coverage:** Every source file has a corresponding test file in `tests/`.
-- [ ] **Comprehensive Test Scenarios:** Success, failure, and edge cases are covered.
-- [ ] **Zero Console Errors:** Application runs with no runtime errors.
-- [ ] **Resilient Exception Handling:** Critical I/O wrapped in `try-catch-finally`; graceful degradation or recovery implemented.
-- [ ] **Retry Logic:** Implemented for transient failures with exponential backoff.
-- [ ] **Zero Trust Input Sanitization:** All external inputs (user, API, file) are validated and sanitized (OWASP 2025 Top 10).
-- [ ] **SBOM Generation:** Software Bill of Materials is generated for all builds.
+### Type of Change
+_Select all that apply._
 
-### ⚡ PERFORMANCE & UX
+- [ ] ✨ Feature (Adds new functionality)
+- [ ] 🐛 Bug Fix (Corrects an existing issue)
+- [ ] 🔨 Refactor (Code structure improvement without changing external behavior)
+- [ ] 📚 Documentation (Updates to `README.md` or other docs)
+- [ ] ⚙️ CI/CD or Infrastructure (Changes to `.github/workflows` or deployment)
 
-- [ ] **INP Optimized:** Interactions complete within 200ms.
-- [ ] **Optimistic UI:** UI updates precede server confirmation where appropriate.
-- [ ] **Lazy Loading:** Resources are loaded only when needed.
-- [ ] **Fluid Animations:** CSS transitions are used for smooth motion.
+### Description
+Please provide a detailed, high-level summary of the changes in this Pull Request.
+_Link related issues here: Closes #ISSUE_NUMBER_
 
-### 🛠️ TOOLCHAIN & AUTOMATION
+## 🏗️ TECHNICAL IMPLEMENTATION & ARCHITECTURE
 
-- [ ] **Biome/Ruff Applied:** Code is formatted and linted without errors.
-- [ ] **Vitest/Pytest Passed:** All unit and integration tests are passing.
-- [ ] **Playwright E2E Passed:** End-to-end tests are passing.
-- [ ] **CI/CD Workflow Passes:** GitHub Actions pipeline for linting, testing, and building completes successfully.
+1.  **Affected FSD Layers/Slices:** Which part of the architecture did this touch? (e.g., `features/audio-generation`, `shared/ui`, `app/providers`).
+2.  **Key Architectural Decision:** Briefly explain why this approach was chosen (e.g., "Used Web Workers to isolate PDF parsing heavy lifting from the main thread").
+3.  **LLM/Data Handling (CRITICAL):** If this PR touches data processing or LLM interaction, confirm:
+    *   Is data strictly processed in-browser? [ ] Yes / [ ] No (If No, STOP and justify security implications).
+    *   Are performance metrics (latency, payload size) acceptable? [ ] Yes
+4.  **Security Impact:** Does this PR introduce new dependencies or handle user inputs? If so, detail steps taken to prevent XSS/injection vulnerabilities.
 
-### 📚 DOCUMENTATION & COMMIT STANDARDS
+## 🧪 TESTING & VERIFICATION STEPS
 
-- [ ] **README Updated:** `README.md` reflects the changes made in this PR.
-- [ ] **Conventional Commit:** PR title follows the Conventional Commits specification (e.g., `feat: Add PDF parsing capabilities`).
-- [ ] **Atomic Commits:** Each commit in the PR is logical and focused.
+To the reviewer: Please confirm these steps execute correctly.
 
-## 2. DESCRIPTION OF CHANGES
+1.  **Setup:** Clone this branch and run `pnpm install`.
+2.  **Testing Environment:** Start the application via `pnpm dev`.
+3.  **Specific Reproduction Steps:**
+    *   Step 1: Navigate to [Specific Path].
+    *   Step 2: Upload a 10MB PDF.
+    *   Step 3: Verify the generated audio narrative starts within X seconds.
+4.  **Screenshots/Gifs (Optional but Recommended):** Attach visual proof of the changes working.
 
-<!-- Briefly describe the purpose and impact of this pull request. -->
+## 📝 CODE REVIEW GUIDANCE
 
-## 3. RELATED ISSUES
+Reviewer Focus Areas:
+- FSD compliance, specifically focusing on dependency directionality.
+- Performance characteristics, especially around Web Workers/LLM threading.
+- TypeScript strictness enforcement and type safety.
 
-<!-- Link to any relevant issues that this PR addresses. -->
-
-## 4. REVIEWER NOTES
-
-<!-- Add any specific instructions or points of interest for the reviewer. -->
+---
+*(This template is enforced by the Apex Technical Authority. High Standards = High Velocity.)*
