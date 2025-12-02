@@ -1,48 +1,36 @@
-# --------------------------------------------------------------------------
-# APEX STANDARD .gitignore - TypeScript/Vite/Node.js Environment (2025)
-# Optimized for Performance, CI/CD, and Feature-Sliced Design (FSD)
-# --------------------------------------------------------------------------
+# Dependency Management
+node_modules/
+.pnpm-debug.log*
 
-# Dependencies
-/node_modules
-/jspm_packages
+# Build Output
+dist/
+build/
+.vite-cache/
 
-# Build Artifacts
-/dist
-/build
-/out
+# Testing & Coverage
 /coverage
-/public/build
-/.vite
-/.tsbuildinfo
+/test-results
 
-# Debug and Test Output
-npm-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-.vitest-cache
-/playwright-report
-
-# Environment Variables & Configuration Secrets
-.env
-.env.*
-!.env.example
-*.local
-
-# IDE and Editor Configuration
-.vscode/settings.json
-.vscode/tasks.json
-.vscode/launch.json
-.vscode/extensions.json
-.vscode/*.local
-
-# OS Generated Files
+# OS Specific
 .DS_Store
 Thumbs.db
 
-# Linter/Formatter Cache (Biome)
-/.biome
+# Editor/IDE
+.vscode/
+*.swp
 
-# Potential Native Wrappers (Tauri/Electron)
-/src-tauri/target
+# TypeScript & Logs
+*.log
+*.tsbuildinfo
+/temp
+
+# Source Maps
+*.map
+
+# Secrets/Local Config (Crucial for Production Readiness)
+.env
+.env.local
+
+# Artifacts (Specific to Web/Vite Stack)
+/out
+/public/build
